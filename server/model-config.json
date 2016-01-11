@@ -1,0 +1,51 @@
+{
+  "_meta": {
+    "sources": [
+      "loopback/common/models",
+      "loopback/server/models",
+      "../common/models",
+      "./models"
+    ],
+    "mixins": [
+      "loopback/common/mixins",
+      "loopback/server/mixins",
+      "../common/mixins",
+      "./mixins"
+    ]
+  },
+  "User": {
+    "dataSource": "mongoDB"
+  },
+  "AccessToken": {
+    "dataSource": "mongoDB",
+    "public": false
+  },
+  "ACL": {
+    "dataSource": "mongoDB",
+    "public": false
+  },
+  "RoleMapping": {
+    "dataSource": "mongoDB",
+    "public": false
+  },
+  "Role": {
+    "dataSource": "mongoDB",
+    "public": false
+  },
+  "oneValSensor": {
+    "dataSource": "mongoDB",
+    "public": true
+  },
+  "twoValSensor": {
+    "dataSource": "mongoDB",
+    "public": true
+  },
+  "oneValGPSSensor": {
+    "dataSource": "mongoDB",
+    "public": true
+  },
+  "twoValGPSSensor": {
+    "dataSource": "mongoDB",
+    "public": true
+  }
+}

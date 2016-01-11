@@ -1,0 +1,33 @@
+{
+  "name": "twoValSensor",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "company": {
+      "type": "string",
+      "required": true
+    },
+    "sensorName": {
+      "type": "string"
+    },
+    "x": {
+      "type": "number",
+      "required": true
+    },
+    "y": {
+      "type": "number",
+      "required": true
+    },
+    "datetime": {
+      "type": "date",
+      "required": true
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}
