@@ -1,0 +1,46 @@
+{
+  "name": "Datapoint",
+  "plural": "Datapoints",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "value": {
+      "type": "number",
+      "required": true
+    },
+    "x": {
+      "type": "number"
+    },
+    "y": {
+      "type": "number"
+    },
+    "gps": {
+      "type": "geopoint"
+    },
+    "datetime": {
+      "type": "date"
+    },
+    "llp_ds": {
+      "type": "number"
+    },
+    "tonelaje": {
+      "type": "number"
+    },
+    "alert_treadshot": {
+      "type": "number"
+    },
+    "createdAt": {
+      "type": "date"
+    },
+    "updatedAt": {
+      "type": "date"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

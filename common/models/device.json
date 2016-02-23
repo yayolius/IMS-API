@@ -1,0 +1,68 @@
+{
+  "name": "Device",
+  "plural": "Devices",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "type": {
+      "type": "string"
+    },
+    "gps": {
+      "type": "geopoint"
+    },
+    "mode": {
+      "type": "string"
+    },
+    "read_type": {
+      "type": "string"
+    },
+    "llp_ds": {
+      "type": "number"
+    },
+    "tonelaje": {
+      "type": "number"
+    },
+    "alert_treadshot": {
+      "type": "number"
+    },
+    "createdAt": {
+      "type": "date"
+    },
+    "updatedAt": {
+      "type": "date"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "Clients": {
+      "type": "hasAndBelongsToMany",
+      "model": "Client"
+    },
+    "datapoints": {
+      "type": "hasMany",
+      "model": "Datapoint"
+    }
+  },
+  "acls": [
+    {
+      "accessType": "READ",
+      "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW"
+    },
+    {
+     "principalType": "ROLE",
+     "principalId": "$owner",
+     "permission": "ALLOW",
+     "property": "__get__devices"
+    }
+  ],
+  "methods": {}
+}

@@ -13,9 +13,6 @@
       "./mixins"
     ]
   },
-  "User": {
-    "dataSource": "mongoDB"
-  },
   "AccessToken": {
     "dataSource": "mongoDB",
     "public": false
@@ -32,19 +29,15 @@
     "dataSource": "mongoDB",
     "public": false
   },
-  "oneValSensor": {
+  "Device": {
     "dataSource": "mongoDB",
     "public": true
   },
-  "twoValSensor": {
+  "Datapoint": {
     "dataSource": "mongoDB",
     "public": true
   },
-  "oneValGPSSensor": {
-    "dataSource": "mongoDB",
-    "public": true
-  },
-  "twoValGPSSensor": {
+  "Client": {
     "dataSource": "mongoDB",
     "public": true
   }
