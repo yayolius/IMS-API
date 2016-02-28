@@ -8,13 +8,6 @@
   },
   "properties": {
     "value": {
-      "type": "number",
-      "required": true
-    },
-    "x": {
-      "type": "number"
-    },
-    "y": {
       "type": "number"
     },
     "gps": {
