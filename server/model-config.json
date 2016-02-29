@@ -40,5 +40,9 @@
   "Client": {
     "dataSource": "mongoDB",
     "public": true
+  },
+  "alert": {
+    "dataSource": "mongoDB",
+    "public": true
   }
 }

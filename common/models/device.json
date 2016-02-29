@@ -48,6 +48,10 @@
     "datapoints": {
       "type": "hasMany",
       "model": "Datapoint"
+    },
+    "alerts": {
+      "type": "hasMany",
+      "model": "alert"
     }
   },
   "acls": [
@@ -58,10 +62,10 @@
       "permission": "ALLOW"
     },
     {
-     "principalType": "ROLE",
-     "principalId": "$owner",
-     "permission": "ALLOW",
-     "property": "__get__devices"
+      "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW",
+      "property": "__get__devices"
     }
   ],
   "methods": {}

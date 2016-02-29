@@ -23,50 +23,47 @@
   },
   "acls": [
     {
-     "principalType": "ROLE",
-     "principalId": "$everyone",
-     "permission": "ALLOW",
-     "property": "__get__Devices"
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "__get__Devices"
     },
     {
-     "principalType": "ROLE",
-     "principalId": "$everyone",
-     "permission": "ALLOW",
-     "property": "__count__Devices"
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "__count__Devices"
     },
     {
-     "principalType": "ROLE",
-     "principalId": "$everyone",
-     "permission": "ALLOW",
-     "property": "__findById__Devices"
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "__findById__Devices"
     },
     {
-     "principalType": "ROLE",
-     "principalId": "$everyone",
-     "permission": "ALLOW",
-     "property": "__create__Devices"
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "__create__Devices"
     },
     {
-     "principalType": "ROLE",
-     "principalId": "$everyone",
-     "permission": "ALLOW",
-     "property": "__exists__Devices"
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "__exists__Devices"
     },
     {
-     "principalType": "ROLE",
-     "principalId": "$everyone",
-     "permission": "ALLOW",
-     "property": "__link__Devices"
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "__link__Devices"
     },
     {
-     "principalType": "ROLE",
-     "principalId": "$everyone",
-     "permission": "ALLOW",
-     "property": "__unlink__Devices"
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "__unlink__Devices"
     }
-
-
-    
   ],
   "methods": {}
 }

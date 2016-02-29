@@ -27,7 +27,23 @@ module.exports = function(Device) {
      			else if( device.gps && device.gps.lat && device.gps.lng ){ newDataPoint.gps = device.gps }
      			
      			device.datapoints.create(newDataPoint, function(err, dpoint) {
-  					cb(null, "ok");
+
+            if(device.alert_treadshot && device.alert_treadshot > dpoint.value){
+              device.alerts.create(
+                  {
+                    datetime: new Date(),
+                    message:"El valor "+dpoint.value+" ha superado  ha superado el margen establecido de " + device.alert_treadshot 
+                  }, function(err,alert){
+                    
+
+                    cb(null, "ok");
+
+                  });
+            }
+            else{
+              cb(null, "ok");
+            }
+  					
 				});
 
      		}else{
@@ -64,7 +80,7 @@ module.exports = function(Device) {
     Device.findById(id, function(err, device) {
       device.datapoints(
           {
-             fields: {value: true, datetime: true, gps: true},
+             fields: {value: true, datetime: true, gps: true,tonelaje: true,llp_ds:true},
              where: {
                 datetime:{
                   gt:thedate
@@ -76,6 +92,10 @@ module.exports = function(Device) {
       });
      
     });
+
+  }
+
+  function procesarAlerta(cb){
 
   }
 
