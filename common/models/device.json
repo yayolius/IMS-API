@@ -32,6 +32,9 @@
     "alert_treadshot": {
       "type": "number"
     },
+    "auto_supresor": {
+      "type": "boolean"
+    },
     "createdAt": {
       "type": "date"
     },

@@ -7,9 +7,15 @@
     "validateUpsert": true
   },
   "properties": {
+
     "value": {
       "type": "number"
     },
+
+    "value_baseline": {
+      "type": "number"
+    },
+    
     "gps": {
       "type": "geopoint"
     },
