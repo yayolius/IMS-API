@@ -352,7 +352,7 @@ module.exports = function(Device) {
               response.push({
                 from: mindate,
                 to:maxdate,
-                count: ngroup.length,
+                count: data.length,
                 baseline: averageValue
               });
               
