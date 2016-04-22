@@ -203,6 +203,38 @@ module.exports = function(Device) {
 
 
   Device.getBaselines = function(id,time,req,res,cb) {
+
+    function percentile(arr, p) {
+      if (arr.length === 0) return 0;
+      if (typeof p !== 'number') throw new TypeError('p must be a number');
+      if (p <= 0) return arr[0];
+      if (p >= 1) return arr[arr.length - 1];
+
+      var index = arr.length * p,
+          lower = Math.floor(index),
+          upper = lower + 1,
+          weight = Math.floor((index % 1)*100)/100;
+    
+      if (upper >= arr.length){ return arr[lower]; }  
+    
+      return arr[lower] * (1 - weight) + arr[upper] * weight;
+    }
+
+    // Returns the percentile of the given value in a sorted numeric array.
+    function percentRank(arr, v) {
+      if (typeof v !== 'number') throw new TypeError('v must be a number');
+      for (var i = 0, l = arr.length; i < l; i++) {
+          if (v <= arr[i]) {
+              while (i < l && v === arr[i]) i++;
+              if (i === 0) return 0;
+              if (v !== arr[i-1]) {
+                  i += (v - arr[i-1]) / (arr[i] - arr[i-1]);
+              }
+              return i / l;
+          }
+      }
+      return 1;
+    }
     
     var milliSecondsAgo = 0;
     if( time.toLowerCase() === "hour" ){
@@ -291,9 +323,28 @@ module.exports = function(Device) {
                   }
               });
 
-              var tenPercent = Math.floor(ngroup.length*0.1);
-              ngroup = _.drop(ngroup, tenPercent);
-              ngroup = _.dropRight(ngroup,tenPercent);
+
+              var data = _.map(ngroup, 'value');
+              data = data.sort(function(a, b){return a-b; });
+
+              var percentil10 = Math.round(percentile(data,0.1)*100)/100; 
+              var percentil90 = Math.round(percentile(data,0.90)*100)/100;
+
+              var filtered = [];
+            
+              for(index in data){
+                var s = data[index];
+                if(s >= percentil10 && s < percentil90){
+                   filtered.push(s);
+                } 
+              }
+
+              var sum = 0;
+              filtered.forEach(function(item){
+                sum = item + sum;
+              });
+
+              var averageValue = sum/filtered.length;
               
               response.push({
                 from: mindate,
