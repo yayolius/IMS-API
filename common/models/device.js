@@ -353,7 +353,7 @@ module.exports = function(Device) {
                 from: mindate,
                 to:maxdate,
                 count: ngroup.length,
-                baseline: _.meanBy(ngroup, 'value_baseline')
+                baseline: averageValue
               });
               
           });
