@@ -324,11 +324,12 @@ module.exports = function(Device) {
               });
 
 
-              var data = _.map(ngroup, 'value');
+              var data = _.map(ngroup, 'value_baseline');
               data = data.sort(function(a, b){return a-b; });
 
               var percentil10 = Math.round(percentile(data,0.1)*100)/100; 
               var percentil90 = Math.round(percentile(data,0.90)*100)/100;
+
 
               var filtered = [];
             
@@ -339,10 +340,12 @@ module.exports = function(Device) {
                 } 
               }
 
+
               var sum = 0;
               filtered.forEach(function(item){
                 sum = item + sum;
               });
+               console.log(percentil10,percentil90,filtered.length,sum,sum/filtered.length);
 
               var averageValue = sum/filtered.length;
               
