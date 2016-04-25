@@ -204,37 +204,39 @@ module.exports = function(Device) {
 
   Device.getBaselines = function(id,time,req,res,cb) {
 
-    function percentile(arr, p) {
-      if (arr.length === 0) return 0;
-      if (typeof p !== 'number') throw new TypeError('p must be a number');
-      if (p <= 0) return arr[0];
-      if (p >= 1) return arr[arr.length - 1];
-
-      var index = arr.length * p,
-          lower = Math.floor(index),
-          upper = lower + 1,
-          weight = Math.floor((index % 1)*100)/100;
-    
-      if (upper >= arr.length){ return arr[lower]; }  
-    
-      return arr[lower] * (1 - weight) + arr[upper] * weight;
+     function getPercentile(data, percentile) {
+        var p;
+        /**
+        * Converts percentile to decimal if necessary
+        **/
+        if (0 < percentile && percentile < 1) {
+            p = percentile;
+        } else if (0 < percentile && percentile <= 100) {
+            p = percentile * 0.01;
+        } else {
+            return false;
+        }
+     
+        var numItems = data.length;
+        var allIndex = (numItems-1)*p;
+        var intIndex = parseInt(allIndex);
+        var floatVal = allIndex - intIndex;
+        var sortedData = data.sort(function(a, b) {
+            return a - b;
+        });
+        var cutOff = 0;
+        if(floatVal % 1 === 0) {
+            cutOff = sortedData[intIndex];
+        } else {
+            if (numItems > intIndex+1) {
+                cutOff = floatVal*(sortedData[intIndex+1] - sortedData[intIndex]) + sortedData[intIndex];
+            } else {
+                cutOff = sortedData[intIndex];
+            }
+        }
+        return cutOff;
     }
 
-    // Returns the percentile of the given value in a sorted numeric array.
-    function percentRank(arr, v) {
-      if (typeof v !== 'number') throw new TypeError('v must be a number');
-      for (var i = 0, l = arr.length; i < l; i++) {
-          if (v <= arr[i]) {
-              while (i < l && v === arr[i]) i++;
-              if (i === 0) return 0;
-              if (v !== arr[i-1]) {
-                  i += (v - arr[i-1]) / (arr[i] - arr[i-1]);
-              }
-              return i / l;
-          }
-      }
-      return 1;
-    }
     
     var milliSecondsAgo = 0;
     if( time.toLowerCase() === "hour" ){
@@ -327,8 +329,8 @@ module.exports = function(Device) {
               var data = _.map(ngroup, 'value_baseline');
               data = data.sort(function(a, b){return a-b; });
 
-              var percentil10 = Math.round(percentile(data,0.1)*100)/100; 
-              var percentil90 = Math.round(percentile(data,0.90)*100)/100;
+              var percentil10 = Math.round(getPercentile(data,10)*100)/100; 
+              var percentil90 = Math.round(getPercentile(data,90)*100)/100;
 
 
               var filtered = [];
@@ -345,7 +347,7 @@ module.exports = function(Device) {
               filtered.forEach(function(item){
                 sum = item + sum;
               });
-               console.log(percentil10,percentil90,filtered.length,sum,sum/filtered.length);
+              console.log(percentil10,percentil90,filtered.length,sum,sum/filtered.length);
 
               var averageValue = sum/filtered.length;
               
