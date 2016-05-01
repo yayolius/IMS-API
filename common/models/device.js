@@ -237,45 +237,8 @@ module.exports = function(Device) {
         return cutOff;
     }
 
-    
-    var milliSecondsAgo = 0;
-    if( time.toLowerCase() === "hour" ){
-      milliSecondsAgo = 1*60*60*1000;
-    }
-    else if( time.toLowerCase() === "3hours" ){
-      milliSecondsAgo = 3*60*60*1000;
-    }
-    else if( time.toLowerCase() === "day" ){
-      milliSecondsAgo = 24*60*60*1000;
-    }
-    else if( time.toLowerCase() === "week" ){
-      milliSecondsAgo = 7*24*60*60*1000;
-    }
-    else if( time.toLowerCase() === "month" ){
-      milliSecondsAgo = 30*24*60*60*1000;
-    }
-    else if( time.toLowerCase() === "all" ){
-      milliSecondsAgo = (new Date()).getTime() ;
-    }
-    var date = new Date();
-    var thedate =  new Date(date.getTime() - milliSecondsAgo);
-
-
-    Device.findById(id, function(err, device) {
-      device.datapoints(
-          {
-             fields: {id:true,value_baseline: true, datetime: true },
-             where: {
-                datetime:{
-                  gt:thedate
-                },
-                value_baseline:{
-                  gt:0
-                }
-             }
-          }
-        ,function(err, datapoints) {
-          var groups = [];
+    function processBaselineDataPoints(datapoints){
+        var groups = [];
           var lastDate = null;
           var lastPoint = datapoints[0];
           var group = [datapoints[0]];
@@ -355,12 +318,78 @@ module.exports = function(Device) {
                 from: mindate,
                 to:maxdate,
                 count: data.length,
-                baseline: averageValue
+                baseline: averageValue,
+                allvalues: ngroup
               });
               
           });
 
           cb(null, response);
+    }
+    
+    var milliSecondsAgo = 0;
+    if( time.toLowerCase() === "hour" ){
+      milliSecondsAgo = 1*60*60*1000;
+    }
+    else if( time.toLowerCase() === "3hours" ){
+      milliSecondsAgo = 3*60*60*1000;
+    }
+    else if( time.toLowerCase() === "day" ){
+      milliSecondsAgo = 24*60*60*1000;
+    }
+    else if( time.toLowerCase() === "week" ){
+      milliSecondsAgo = 7*24*60*60*1000;
+    }
+    else if( time.toLowerCase() === "month" ){
+      milliSecondsAgo = 30*24*60*60*1000;
+    }
+    else if( time.toLowerCase() === "all" ){
+      milliSecondsAgo = (new Date()).getTime() ;
+    }
+    var date = new Date();
+    var thedate =  new Date(date.getTime() - milliSecondsAgo);
+
+
+    Device.findById(id, function(err, device) {
+      var fields = {id:true,value_baseline: true, datetime: true };
+      var where = {
+                datetime:{
+                  gt:thedate
+                },
+                value_baseline:{
+                  gt:0
+                }
+             };
+      device.datapoints({  fields: fields, where: where}
+        ,function(err, datapoints) {
+          if(datapoints.length === 0){
+            //intentemos 1 mes
+
+            where.datetime.gt = new Date(date.getTime() - 30*24*60*60*1000); //1month
+            device.datapoints({  fields: fields, where: where}
+              ,function(err, datapoints) {
+                if(datapoints.length === 0){
+                  //sino todos no mas
+                  where.datetime.gt = new Date(date.getTime() - date.getTime()); //all
+                device.datapoints({  fields: fields, where: where}
+                  ,function(err, datapoints) {
+                   
+                   processBaselineDataPoints(datapoints);
+                     
+                });
+
+                }else{
+                  processBaselineDataPoints(datapoints);
+                  return null;
+                }
+            });
+
+
+
+          }else{
+            processBaselineDataPoints(datapoints);
+            return null;
+          }
       });
      
     });
