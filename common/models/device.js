@@ -175,7 +175,13 @@ module.exports = function(Device) {
           }
         , function(err, datapoints) {
 
-          json2csv({del:";",quotes:'',doubleQuotes:null, data: datapoints, fields: ["value","value_baseline","datetime", "gps","tonelaje"] }, function(err, csv) {
+          json2csv({del:";",quotes:'',doubleQuotes:null, data: datapoints, fields: ["value","value_baseline",{
+                      label: 'fecha', // Supports duplicate labels (required, else your column will be labeled [function])
+                      value: function(row) {
+                        return row.datetime.toLocaleString();
+                      },
+                      default: '' // default if value fn returns falsy
+                    }, "gps","tonelaje"] }, function(err, csv) {
             if (err) console.log(err);
             
             //AQUI HAY QUE CAMBIAR LA CABECERA DE LA RESPUESTA PARA FORZAR LA DESCARGA
