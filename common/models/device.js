@@ -178,7 +178,7 @@ module.exports = function(Device) {
           json2csv({del:";",quotes:'',doubleQuotes:null, data: datapoints, fields: ["value","value_baseline",{
                       label: 'fecha', // Supports duplicate labels (required, else your column will be labeled [function])
                       value: function(row) {
-                        return row.datetime.toLocaleString();
+                        return row.datetime.toLocaleString("es");
                       },
                       default: '' // default if value fn returns falsy
                     }, "gps","tonelaje"] }, function(err, csv) {

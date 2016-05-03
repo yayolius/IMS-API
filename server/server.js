@@ -1,3 +1,4 @@
+process.env.TZ = 'America/Santiago'  
 var loopback = require('loopback');
 var boot = require('loopback-boot');
 
