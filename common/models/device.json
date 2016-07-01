@@ -35,6 +35,23 @@
     "auto_supresor": {
       "type": "boolean"
     },
+    "percentil_inferior": {
+      "type": "number",
+      "default": 10
+    },
+    "percentil_superior": {
+      "type": "number",
+      "default": 10
+    },
+    "show_calculo": {
+      "type": "boolean",
+      "default": false
+    },
+    "show_tonelaje": {
+      "type": "boolean",
+      "default": false
+    },
+
     "createdAt": {
       "type": "date"
     },
