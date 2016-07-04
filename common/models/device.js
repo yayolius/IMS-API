@@ -463,6 +463,54 @@ module.exports = function(Device) {
     });
 
   }
+  
+    /**
+     * @autor ahenriquez
+     */
+    Device.lastBaseLines = function(id) {
+        return Device.findOne({
+            include: {
+                relation: 'datapoints',
+                scope: {
+                    limit: 20,
+                    where: {
+                        value_baseline: {
+                            gte: 0
+                        }
+                    },
+                    order: 'datetime DESC'
+                }
+            },
+            where: {
+                id: id
+            }
+        });
+    };
+
+
+    /**
+     * @autor ahenriquez
+     */
+    Device.firstBaseLine = function(id) {
+        return Device.findOne({
+            include: {
+                relation: 'datapoints',
+                scope: {
+                    limit: 1,
+                    where: {
+                        value_baseline: {
+                            gte: 0
+                        }
+                    },
+                    order: 'datetime ASC'
+                }
+            },
+            where: {
+                id: id
+            }
+        });
+    };
+
 
   Device.DeleteBaselines = function (id,req,res,cb){
 
@@ -663,4 +711,5 @@ module.exports = function(Device) {
           returns:  {"type": "object", root:true}
         }
     );
+
 };
