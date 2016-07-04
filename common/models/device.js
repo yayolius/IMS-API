@@ -2,7 +2,48 @@ var json2csv = require('json2csv');
 var _ = require('lodash');
 
 module.exports = function(Device) {
-	
+	var app = require('../../server/server');
+
+  Device.getDeviceConfig = function(field,name,req,res,cb){   
+    
+    if(['dosificacion','tonelaje','llp_ds'].indexOf(field) === -1){
+      return cb({message:"Invalid field",status:403}, null);
+    }
+    Device.findOne({where: {name: name}, limit: 1}, function(err, device) {
+      
+      if(device){
+        return cb(null,device[field]);
+      }else{
+        return cb({message:"Device not found",status:404}, null);
+      }
+     
+     return null;
+
+    });
+  }
+  Device.setDeviceConfig = function(field,name,value,req,res,cb){
+    if(['dosificacion','tonelaje','llp_ds'].indexOf(field) === -1){
+      return cb({message:"Invalid field",status:403}, null);
+    }
+    Device.findOne({where: {name: name}, limit: 1}, function(err, device) {
+      
+      if(device){          
+        if(field == 'dosificacion' && ['bajo','medio','alto'].indexOf(value) < 0 ){
+          return cb({message:"Invalid field value",status:403}, null);
+        }
+        device[field] =  value;
+        device.save(function(res){
+             return cb(null,device[field]);
+        });
+      }else{
+        return cb({message:"Device not found",status:404}, null);
+      }
+     
+     return null;
+
+    });
+  }
+
   Device.AddDatapoint = function(data,req,res,cb) {
     
     if(data.name){
@@ -37,6 +78,10 @@ module.exports = function(Device) {
      			if(data.gps && data.gps.lat && data.gps.lng ){ newDataPoint.gps = data.gps; }
      			else if( device.gps && device.gps.lat && device.gps.lng ){ newDataPoint.gps = device.gps }
      			
+
+          //console.log(newDataPoint);
+
+
      			device.datapoints.create(newDataPoint, function(err, dpoint) {
 
 
@@ -106,12 +151,22 @@ module.exports = function(Device) {
                 datetime:{
                   gt:thedate
                 },
-                value:{
-                  gt:0
-                }
+                or:[
+                  {
+                    value:{
+                      gt:0
+                    }
+                  },
+                  {
+                    value_baseline:{
+                      gt:0
+                    }
+                  }
+                ]
              }
           }
         , function(err, datapoints) {
+          
            cb(null, datapoints);
       });
      
@@ -243,7 +298,8 @@ module.exports = function(Device) {
         return cutOff;
     }
 
-    function processBaselineDataPoints(datapoints){
+    function processBaselineDataPoints(datapoints,percentileFrom,percentileTo){
+
         var groups = [];
           var lastDate = null;
           var lastPoint = datapoints[0];
@@ -299,11 +355,15 @@ module.exports = function(Device) {
               data = data.sort(function(a, b){return a-b; });
 
               var percentil10 = Math.round(getPercentile(data,10)*100)/100; 
+              if(percentileFrom){
+                percentil10 = Math.round(getPercentile(data,percentileFrom)*100)/100; 
+              }
               var percentil90 = Math.round(getPercentile(data,90)*100)/100;
+              if(percentileTo){
+                percentil90 = Math.round(getPercentile(data,percentileTo)*100)/100; 
+              }
 
-
-              var filtered = [];
-            
+              var filtered = [];            
               for(index in data){
                 var s = data[index];
                 if(s >= percentil10 && s < percentil90){
@@ -324,9 +384,11 @@ module.exports = function(Device) {
                 from: mindate,
                 to:maxdate,
                 count: data.length,
-                baseline: averageValue,
+                baseline: Math.round(averageValue*1000)/1000,
                 allvalues: ngroup
               });
+
+
               
           });
 
@@ -380,12 +442,12 @@ module.exports = function(Device) {
                 device.datapoints({  fields: fields, where: where}
                   ,function(err, datapoints) {
                    
-                   processBaselineDataPoints(datapoints);
+                   processBaselineDataPoints(datapoints,device.percentil_inferior,device.percentil_superior);
                      
                 });
 
                 }else{
-                  processBaselineDataPoints(datapoints);
+                  processBaselineDataPoints(datapoints,device.percentil_inferior,device.percentil_superior);
                   return null;
                 }
             });
@@ -393,7 +455,7 @@ module.exports = function(Device) {
 
 
           }else{
-            processBaselineDataPoints(datapoints);
+            processBaselineDataPoints(datapoints,device.percentil_inferior,device.percentil_superior);
             return null;
           }
       });
@@ -401,6 +463,105 @@ module.exports = function(Device) {
     });
 
   }
+
+  Device.DeleteBaselines = function (id,req,res,cb){
+
+    console.log();
+
+    Device.findById(id, function(err, device) {
+      if(device){
+        var baselines = req.body.baselines;
+        
+        baselines.forEach(function(bline){
+          bline.deviceId = device.id;
+        });
+        
+        app.models.Datapoint.destroyAll( { or: baselines },function(err,info){          
+          return cb(null,{status:"ok"});
+        })
+        /*device.datapoints.destroyAll({ where: { or: req.body.baselines }},function(err,info){
+          console.log(err,info);
+          return cb(null,{});
+        });*/
+       
+      }else{
+        return cb({message:"Device not found",status:401}, null);
+      }
+    });
+  }
+
+
+  Device.ExportBaselines = function (id,req,res,cb){
+
+
+    Device.findById(id, function(err, device) {
+      if(device){
+        var baselines = req.body.baselines;
+        
+        baselines.forEach(function(bline){
+          bline.deviceId = device.id;
+        });
+        
+        app.models.Datapoint.find( { 
+          
+            fields: { value: true, value_baseline:true, datetime: true, gps: true,tonelaje: true },
+            where : { or: baselines } 
+
+          },function(err,datapoints){          
+          
+          json2csv({del:";",quotes:'',doubleQuotes:null, data: datapoints, fields: ["value","value_baseline",{
+                      label: 'fecha', // Supports duplicate labels (required, else your column will be labeled [function])
+                      value: function(row) {
+                        return row.datetime.toLocaleString("es");
+                      },
+                      default: '' // default if value fn returns falsy
+                    }, "gps","tonelaje"] }, function(err, csv) {
+            if (err) console.log(err);
+            
+            //AQUI HAY QUE CAMBIAR LA CABECERA DE LA RESPUESTA PARA FORZAR LA DESCARGA
+            res.setHeader('Content-Type', 'application/octet-stream');
+            res.setHeader('Content-Disposition', 'attachment; filename="export-baseline' + device.name +'-' + ( new Date() ).getSeconds()+"."+( new Date() ).getMilliseconds() +'.csv"');
+            res.send(csv).end();
+          });
+
+        });
+      }else{
+        return cb({message:"Device not found",status:401}, null);
+      }
+    });
+  }
+
+
+  Device.remoteMethod (
+        'getDeviceConfig',
+        {
+          http: {path: '/config/:field', verb: 'get'},
+          accepts: [ 
+              {arg: 'field', type: 'string',  http: { source: 'path' } } ,
+              {arg: 'name', type: 'string',  http: { source: 'query' } } ,
+              {arg: 'req',  type: 'object', 'http': {source: 'req'}},
+              {arg: 'res',  type: 'object', 'http': {source: 'res'}}
+          ],
+          returns: {arg: 'value', type: 'string'}
+        }
+    );
+
+  Device.remoteMethod (
+        'setDeviceConfig',
+        {
+          http: {path: '/config/:field', verb: 'post'},
+          accepts: [ 
+              {arg: 'field', type: 'string',  http: { source: 'path' } } ,
+              {arg: 'name', type: 'string',  http: { source: 'query' } } ,
+              {arg: 'value', type: 'string',  http: { source: 'query' } } ,
+              {arg: 'req',  type: 'object', 'http': {source: 'req'}},
+              {arg: 'res',  type: 'object', 'http': {source: 'res'}}
+          ],
+          returns: {arg: 'value', type: 'string'}
+        }
+    );
+
+
 
   Device.remoteMethod (
         'AddDatapoint',
@@ -468,6 +629,34 @@ module.exports = function(Device) {
 
               {arg: 'id',    type: 'string',  http: { source: 'path' } } ,
               {arg: 'time', type: 'string',  http: { source: 'path' } } ,
+              {arg: 'req',  type: 'object', 'http': {source: 'req'}},
+              {arg: 'res',  type: 'object', 'http': {source: 'res'}}
+          ],
+          returns:  {"type": "object", root:true}
+        }
+    );
+
+  Device.remoteMethod (
+        'DeleteBaselines',
+        {
+          http: {path: '/:id/Datapoints/baselines/delete', verb: 'post'},
+          accepts: [ 
+
+              {arg: 'id',    type: 'string',  http: { source: 'path' } } ,
+              {arg: 'req',  type: 'object', 'http': {source: 'req'}},
+              {arg: 'res',  type: 'object', 'http': {source: 'res'}}
+          ],
+          returns:  {"type": "object", root:true}
+        }
+    );
+
+  Device.remoteMethod (
+        'ExportBaselines',
+        {
+          http: {path: '/:id/Datapoints/baselines/export', verb: 'post'},
+          accepts: [ 
+
+              {arg: 'id',    type: 'string',  http: { source: 'path' } } ,
               {arg: 'req',  type: 'object', 'http': {source: 'req'}},
               {arg: 'res',  type: 'object', 'http': {source: 'res'}}
           ],

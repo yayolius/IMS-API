@@ -41,7 +41,7 @@
     },
     "percentil_superior": {
       "type": "number",
-      "default": 10
+      "default": 90
     },
     "show_calculo": {
       "type": "boolean",
@@ -51,7 +51,19 @@
       "type": "boolean",
       "default": false
     },
-
+    "dosificacion": {
+      "type": "string",
+      "default": "bajo"
+    },
+    "baseline_from": {
+      "type": "date"
+    },
+    "baseline_to": {
+      "type": "date"
+    },
+    "baseline_value": {
+      "type": "number"
+    },
     "createdAt": {
       "type": "date"
     },
