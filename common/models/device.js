@@ -83,19 +83,13 @@ module.exports = function(Device) {
 
 
      			device.datapoints.create(newDataPoint, function(err, dpoint) {
-
-
-
             if(device.alert_treadshot && device.alert_treadshot > dpoint.value){
               device.alerts.create(
                   {
                     datetime: new Date(),
                     message:"El valor "+dpoint.value+" ha superado  ha superado el margen establecido de " + device.alert_treadshot 
                   }, function(err,alert){
-                    
-
                     cb(null, "ok");
-
                   });
             }
             else{
@@ -300,27 +294,18 @@ module.exports = function(Device) {
 
     function processBaselineDataPoints(datapoints,percentileFrom,percentileTo){
 
-        var groups = [];
+          var groups = [];
           var lastDate = null;
           var lastPoint = datapoints[0];
           var group = [datapoints[0]];
           datapoints.forEach(function(point){
             if(point.id === lastPoint.id ) return;
-
-            //console.log(Math.abs( (new Date(point.datetime)).getTime() - (new Date(lastPoint.datetime)).getTime() )/1000);
-
             if( Math.abs( (new Date(point.datetime)).getTime() - (new Date(lastPoint.datetime)).getTime() ) > 5*60*1000){
               groups.push(group);
               group = [point];
-            
             }else{
-            
               group.push(point);
-            
             }
-
-
-
             lastPoint = point;
           
           });
@@ -350,7 +335,7 @@ module.exports = function(Device) {
                   }
               });
 
-
+              var allTonelaje = _.map(ngroup, 'tonelaje');
               var data = _.map(ngroup, 'value_baseline');
               data = data.sort(function(a, b){return a-b; });
 
@@ -362,7 +347,7 @@ module.exports = function(Device) {
               if(percentileTo){
                 percentil90 = Math.round(getPercentile(data,percentileTo)*100)/100; 
               }
-
+              console.log(percentil10,percentil90);
               var filtered = [];            
               for(index in data){
                 var s = data[index];
@@ -372,26 +357,34 @@ module.exports = function(Device) {
               }
 
 
+
+              var sumTonelaje = 0;
               var sum = 0;
               filtered.forEach(function(item){
                 sum = item + sum;
               });
-              console.log(percentil10,percentil90,filtered.length,sum,sum/filtered.length);
 
-              var averageValue = sum/filtered.length;
+
+
+              allTonelaje.forEach(function(item){
+                sumTonelaje = item + sumTonelaje;
+              });
               
+              var averageValue = sum/filtered.length;
+              var freq = ((maxdate.getTime()-mindate.getTime())/(60*60*1000))/ngroup.length;
               response.push({
                 from: mindate,
                 to:maxdate,
+                totalCount : ngroup.length,
                 count: data.length,
                 baseline: Math.round(averageValue*1000)/1000,
-                allvalues: ngroup
+                baselinesSum: sum,
+                freq: freq,
+                totalTime: filtered.length*freq,
+                allvalues: ngroup,
+                tonelajeAvg: allTonelaje.length?sumTonelaje/allTonelaje.length:1
               });
-
-
-              
           });
-
           cb(null, response);
     }
     
@@ -419,7 +412,7 @@ module.exports = function(Device) {
 
 
     Device.findById(id, function(err, device) {
-      var fields = {id:true,value_baseline: true, datetime: true };
+      var fields = {id:true,value_baseline: true, datetime: true, tonelaje: true };
       var where = {
                 datetime:{
                   gt:thedate
