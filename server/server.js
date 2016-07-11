@@ -4,6 +4,9 @@ var boot = require('loopback-boot');
 
 var app = module.exports = loopback();
 
+app.use(loopback.bodyParser.json({limit: 524288000}));
+app.use(loopback.bodyParser.urlencoded({limit: 524288000, extended: true}));
+
 app.start = function() {
   // start the web server
   return app.listen(function() {
