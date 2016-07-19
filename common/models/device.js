@@ -133,6 +133,10 @@ module.exports = function(Device) {
     else if( time.toLowerCase() === "all" ){
       milliSecondsAgo = (new Date()).getTime() ;
     }
+    else if( time.toLowerCase() === "range" ){
+      milliSecondsAgo = (new Date()).getTime() ;
+    }
+
     var date = new Date();
     var thedate =  new Date(date.getTime() - milliSecondsAgo);
 
@@ -191,8 +195,9 @@ module.exports = function(Device) {
 
   }
 
-   Device.exportDatapointsValues = function(id,time,req,res,cb) {
-    
+   Device.exportDatapointsValues = function(id,time,req,res,from,to,cb) {
+      
+
    if( time.toLowerCase() === "hour" ){
       milliSecondsAgo = 1*60*60*1000;
     }
@@ -208,20 +213,35 @@ module.exports = function(Device) {
     else if( time.toLowerCase() === "all" ){
       milliSecondsAgo = (new Date()).getTime() ;
     }
-    var date = new Date();
-    var thedate =  new Date(date.getTime() - milliSecondsAgo);
-
-
-    Device.findById(id, function(err, device) {
-      device.datapoints(
-          {
+    else if( time.toLowerCase() === "range" ){
+      milliSecondsAgo = from;
+    }
+    if(time.toLowerCase() !== "range") {
+      var date = new Date();
+      var thedate =  new Date(date.getTime() - milliSecondsAgo);
+     var query =  {
+           fields: {value: true, value_baseline:true, datetime: true, gps: true,tonelaje: true},
+           where: {
+              datetime:{
+                gt:thedate
+              }
+           }
+        };
+    }else{
+       var query =  {
              fields: {value: true, value_baseline:true, datetime: true, gps: true,tonelaje: true},
              where: {
                 datetime:{
-                  gt:thedate
+                  gt:new Date(from),
+                  lt: new Date(to)
                 }
              }
-          }
+          };
+    }
+
+    Device.findById(id, function(err, device) {
+      device.datapoints(
+         query
         , function(err, datapoints) {
 
           json2csv({del:";",quotes:'',doubleQuotes:null, data: datapoints, fields: ["value","value_baseline",{
@@ -671,7 +691,9 @@ module.exports = function(Device) {
               {arg: 'id',    type: 'string',  http: { source: 'path' } } ,
               {arg: 'time', type: 'string',  http: { source: 'path' } } ,
               {arg: 'req',  type: 'object', 'http': {source: 'req'}},
-              {arg: 'res',  type: 'object', 'http': {source: 'res'}}
+              {arg: 'res',  type: 'object', 'http': {source: 'res'}},
+              {arg: 'from', type: 'number',  http: { source: 'query' } } ,
+              {arg: 'to', type: 'number',  http: { source: 'query' } } 
           ],
           returns:  {"type": "object", root:true}
         }
